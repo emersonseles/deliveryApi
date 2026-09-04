@@ -1,63 +1,90 @@
 package com.deliverytech.delivery.controller;
 
 import com.deliverytech.delivery.entity.Cliente;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import com.deliverytech.delivery.service.ClienteService;
 
-import java.util.ArrayList;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
+import java.util.Optional;
 
 @RestController
+@RequestMapping("/clientes")
+@CrossOrigin(origins = "*")
 public class ClienteController {
 
-    // Simulando um banco de dados com uma lista de cliente
-    // https://localhost:8080/cliente
-    @GetMapping("/cliente")
-    public Cliente getCliente() {
-        Cliente cliente = new Cliente();
-        cliente.setNome("João Silva");
-        return cliente;
+    @Autowired
+    private ClienteService clienteService;
+
+    @PostMapping
+    public ResponseEntity<?> cadastrar(@Valid @RequestBody Cliente cliente) {
+        try {
+            Cliente clienteSalvo = clienteService.cadastrarCliente(cliente);
+            return ResponseEntity.status(HttpStatus.CREATED).body(clienteSalvo);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro interno do servidor");
+        }
     }
 
-    // Simulando um banco de dados com uma lista de clientes
-    // https://localhost:8080/clientes
-    @GetMapping("/clientes")
-    public List<Cliente> getClientes() {
-        List<Cliente> clientes = new ArrayList<>();
-
-        Cliente c1 = new Cliente();
-        c1.setNome("João Silva");
-        clientes.add(c1);
-
-        Cliente c2 = new Cliente();
-        c2.setNome("Maria Souza");
-        clientes.add(c2);
-
-        Cliente c3 = new Cliente();
-        c3.setNome("Pedro Oliveira");
-        clientes.add(c3);
-
-        return clientes;
+    @GetMapping
+    public ResponseEntity<List<Cliente>> listar() {
+        List<Cliente> clientes = clienteService.listarAtivos();
+        return ResponseEntity.ok(clientes);
     }
 
-    // O valor na URL diretamente injetado no método
-    // https://localhost:8080/cliente/João
-    @GetMapping("/cliente/{nome}")
-    public Cliente getClienteByPathVariable(@PathVariable String nome) {
-        Cliente cliente = new Cliente();
-        cliente.setNome(nome);
-        return cliente;
+    @GetMapping("/{id}")
+    public ResponseEntity<?> buscarPorId(@PathVariable Long id) {
+        Optional<Cliente> cliente = clienteService.buscarClientePorId(id);
+        return cliente.isPresent()
+                ? ResponseEntity.ok(cliente.get())
+                : ResponseEntity.notFound().build();
     }
 
-    // build onde o valor é passado como query param
-    // https://localhost:8080/cliente/query?nome=João
-    @GetMapping("/cliente/query")
-    public Cliente getClienteByQueryParam(@RequestParam String nome) {
-        Cliente cliente = new Cliente();
-        cliente.setNome(nome);
-        return cliente;
+    @PutMapping("/{id}")
+    public ResponseEntity<?> atualizar(@PathVariable Long id,
+                                       @Valid @RequestBody Cliente cliente) {
+        try {
+            Cliente clienteAtualizado = clienteService.atualizarCliente(id, cliente);
+            return ResponseEntity.ok(clienteAtualizado);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro interno do servidor");
+        }
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> inativar(@PathVariable Long id) {
+        try {
+            clienteService.inativarCliente(id);
+            return ResponseEntity.ok().body("Cliente inativado com sucesso");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro interno do servidor");
+        }
+    }
+
+    @GetMapping("/buscar")
+    public ResponseEntity<List<Cliente>> buscarPorNome(@RequestParam String nome) {
+        List<Cliente> clientes = clienteService.buscarClientesPorNome(nome);
+        return ResponseEntity.ok(clientes);
+    }
+
+    @GetMapping("/email/{email}")
+    public ResponseEntity<?> buscarPorEmail(@PathVariable String email) {
+        Optional<Cliente> cliente = clienteService.buscarClientePorEmail(email);
+        return cliente.isPresent()
+                ? ResponseEntity.ok(cliente.get())
+                : ResponseEntity.notFound().build();
+    }
 }
