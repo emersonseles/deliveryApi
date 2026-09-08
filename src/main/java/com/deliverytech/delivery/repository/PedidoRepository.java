@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
@@ -22,6 +23,8 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
     // Buscar pedidos por cliente ID
     List<Pedido> findByClienteIdOrderByDataPedidoDesc(Long clienteId);
+
+    Optional<Pedido> findByNumeroPedido(String numeroPedido);
 
     // Buscar por status
     List<Pedido> findByStatusPedidoOrderByDataPedidoDesc(StatusPedido statusPedido);
@@ -44,4 +47,5 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     List<Pedido> findPedidosDoDia(
             @Param("inicioDia") LocalDateTime inicioDia,
             @Param("fimDia") LocalDateTime fimDia);
+
 }
