@@ -1,5 +1,6 @@
 package com.deliverytech.delivery.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -23,5 +24,6 @@ public class Cliente {
     private boolean ativo;
 
     @OneToMany(mappedBy = "cliente")
+    @JsonIgnore
     private List<Pedido> pedidos;
 }

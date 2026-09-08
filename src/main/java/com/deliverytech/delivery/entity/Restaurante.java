@@ -1,5 +1,6 @@
 package com.deliverytech.delivery.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -24,8 +25,10 @@ public class Restaurante {
     private boolean ativo;
 
     @OneToMany(mappedBy = "restaurante")
+    @JsonIgnore
     private List<Pedido> pedidos;
 
     @OneToMany(mappedBy = "restaurante")
+    @JsonIgnore
     private List<Produto> produtos;
 }
